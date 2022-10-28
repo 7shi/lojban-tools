@@ -15,7 +15,7 @@ for (const line of finprims.split("\r\n")) {
     } else if (words.length) {
         const m = d.match(/([a-z?]+)  (\d\d\.\d\d) (\d( \d){5})/);
         if (m) {
-            data[m[1]] = { score: m[2], scores: m[3], words: words };
+            data[m[1]] = { score: m[2], sims: m[3], words: words };
             words = [];
         } else if (line.substring(0, 14).trim()) {
             words = [];

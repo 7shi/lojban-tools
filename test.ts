@@ -54,13 +54,13 @@ function test(word, data) {
     const sc = gismu(weights["????"], word, data.words);
     const score = Math.floor(sc.score * 10000) / 100;
     const sc1 = score.toFixed(2), sc2 = sc.sims.join(" ");
-    const ok1 = sc1 == data.score, ok2 = sc2 == data.scores;
+    const ok1 = sc1 == data.score, ok2 = sc2 == data.sims;
     if (!ok1 || !ok2) {
         let diff = (score - parseFloat(data.score)).toFixed(2);
         if (!diff.startsWith("-")) diff = "+" + diff;
         console.log(word,
             ok1 ? "[OK]" : "[" + diff + "]", sc1, "exp =", data.score,
-            ok2 ? "[OK]" : "[NG]", sc2, "exp =", data.scores,
+            ok2 ? "[OK]" : "[NG]", sc2, "exp =", data.sims,
             "|", data.words.join(" "));
         ng++;
     }
