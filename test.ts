@@ -15,9 +15,9 @@ function similarity2a(g: string, w: string): number {
 function similarity2b(g: string, w: string): number {
     if (!g || !w) return 0;
     for (let i = 0; i < w.length - 1; i++) {
-        let j = -1;
-        while ((j = g.indexOf(w[i], j + 1)) >= 0) {
-            if ((g[j + 1] == w[i + 1] || (i < w.length - 2 && g[j + 2] == w[i + 2])))
+        for (let j = 0; j < g.length - 1; j++) {
+            if (g[j] == w[i] &&
+                (g[j + 1] == w[i + 1] || (g[j + 2] ?? "") == w[i + 2]))
                 return 2;
         }
     }
