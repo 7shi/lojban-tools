@@ -67,6 +67,8 @@ function test(word, data) {
     all++;
 }
 
-const finprims = JSON.parse(Deno.readTextFileSync("finprims.json"));
+interface FinPrim { score: string, sims: string, words: string[]  }
+const finprims: { [index: string]: FinPrim } =
+    JSON.parse(Deno.readTextFileSync("finprims.json"));
 for (const [word, data] of Object.entries(finprims)) test(word, data);
 console.log("NG:", ng, "/", all);

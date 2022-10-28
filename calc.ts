@@ -1,6 +1,6 @@
 import * as math from "https://esm.sh/mathjs@11.3.2/";
 
-interface FinPrim { word: string, words: string[], score: string, sims: string }
+interface FinPrim { score: string, sims: string, words: string[]  }
 const finprims: { [index: string]: FinPrim } =
     JSON.parse(Deno.readTextFileSync("finprims.json"));
 let lvalues: number[][] = [], rvalues: number[] = [], sols: DenseMatrix[] = [];
