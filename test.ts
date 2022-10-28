@@ -62,11 +62,12 @@ const finprims: { [index: string]: FinPrim } =
 // }
 
 function score(g: string, words: string[], weights: number[]) {
+    const ws = weights.map(w => Math.floor(w * 10000));
     let score = 0, sims: number[] = [];
     for (let i = 0; i < 6; i++) {
         const w = words[i];
         let s = similarity(g, w);
-        score += s ? s / w.length * weights[i] : 0;
+        score += s ? Math.floor(s * ws[i] / w.length) : 0;
         sims.push(s);
     }
     return { score: score, sims: sims };
@@ -74,22 +75,19 @@ function score(g: string, words: string[], weights: number[]) {
 
 const ws = weights["????"];
 // const ws = [0.330, 0.180, 0.160, 0.120, 0.120, 0.070]; // sum: 0.98
-let all = 0, ng = 0, diffs = {};
+let all = 0, ng = 0;
 for (const [g, data] of Object.entries(finprims)) {
     const ss = score(g, data.words, ws);
-    const sc = Math.floor(ss.score * 10000) / 100;
+    const sc = ss.score / 100;
     const sc1 = sc.toFixed(2), sc2 = ss.sims.join(" ");
     const ok1 = sc1 == data.score, ok2 = sc2 == data.sims;
     if (!ok1 || !ok2) {
-        let diff = (sc - parseFloat(data.score)).toFixed(2);
-        if (!diff.startsWith("-")) diff = "+" + diff;
-        if (diff in diffs) diffs[diff]++; else diffs[diff] = 1;
         console.log(g,
-            ok1 ? "[OK]" : "[" + diff + "]", sc1, "exp =", data.score,
-            //ok2 ? "[OK]" : "[NG]", sc2, "exp =", data.sims,
+            ok1 ? "[OK]" : "[NG]", sc1, "exp =", data.score,
+            ok2 ? "[OK]" : "[NG]", sc2, "exp =", data.sims,
             "|", data.words.join(" "));
         ng++;
     }
     all++;
 }
-console.log("NG:", ng, "/", all, "diffs:", diffs);
+console.log("NG:", ng, "/", all);
