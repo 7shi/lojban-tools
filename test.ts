@@ -83,7 +83,7 @@ for (const [g, data] of Object.entries(finprims)) {
     if (!ok1 || !ok2) {
         let diff = (sc - parseFloat(data.score)).toFixed(2);
         if (!diff.startsWith("-")) diff = "+" + diff;
-        if (diff in diffs) diffs[diff]++; else diffs[diff] = 0;
+        if (diff in diffs) diffs[diff]++; else diffs[diff] = 1;
         console.log(g,
             ok1 ? "[OK]" : "[" + diff + "]", sc1, "exp =", data.score,
             //ok2 ? "[OK]" : "[NG]", sc2, "exp =", data.sims,
