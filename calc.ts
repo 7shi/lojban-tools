@@ -13,7 +13,7 @@ for (const data of Object.values(finprims)) {
     if (lvalues.length == 6) {
         if (Math.abs(math.det(lvalues)) > 1e-5) {
             sols.push(math.matrix(math.multiply(math.inv(lvalues), rvalues)));
-            if (sols.length == 20) break;
+            //if (sols.length == 20) break;
         }
         lvalues = [];
         rvalues = [];

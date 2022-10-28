@@ -29,7 +29,16 @@ function similarity(g: string, w: string) {
     return s < 3 ? similarity2b(g, w) : s;
 }
 
-function gismu(weights: number[], g: string, words: string[]) {
+const weights = {
+    //      [ zh  ,  en  ,  hi  ,  es  ,  ru  ,  ar  ]
+    "1985": [0.360, 0.210, 0.160, 0.110, 0.090, 0.070], // sum: 1
+    "1994": [0.348, 0.163, 0.194, 0.123, 0.088, 0.084], // sum: 1
+    "1995": [0.347, 0.160, 0.196, 0.123, 0.089, 0.085], // sum: 1
+    "1999": [0.334, 0.187, 0.195, 0.116, 0.081, 0.088], // sum: 1.001
+    "????": [0.330, 0.180, 0.160, 0.120, 0.120, 0.070], // sum: 0.98
+};
+
+function score(weights: number[], g: string, words: string[]) {
     let score = 0, sims: number[] = [];
     for (let i = 0; i < 6; i++) {
         const w = words[i];
@@ -40,23 +49,14 @@ function gismu(weights: number[], g: string, words: string[]) {
     return { score: score, sims: sims };
 }
 
-const weights = {
-    //      [ zh  ,  en  ,  hi  ,  es  ,  ru  ,  ar  ]
-    "1985": [0.360, 0.210, 0.160, 0.110, 0.090, 0.070], // sum: 1
-    "1994": [0.348, 0.163, 0.194, 0.123, 0.088, 0.084], // sum: 1
-    "1995": [0.347, 0.160, 0.196, 0.123, 0.089, 0.085], // sum: 1
-    "1999": [0.334, 0.187, 0.195, 0.116, 0.081, 0.088], // sum: 1.001
-    "????": [0.330, 0.180, 0.160, 0.120, 0.120, 0.070], // sum: 0.98
-};
-
 let all = 0, ng = 0;
 function test(word, data) {
-    const sc = gismu(weights["????"], word, data.words);
-    const score = Math.floor(sc.score * 10000) / 100;
-    const sc1 = score.toFixed(2), sc2 = sc.sims.join(" ");
+    const ss = score(weights["????"], word, data.words);
+    const sc = Math.floor(ss.score * 10000) / 100;
+    const sc1 = sc.toFixed(2), sc2 = ss.sims.join(" ");
     const ok1 = sc1 == data.score, ok2 = sc2 == data.sims;
     if (!ok1 || !ok2) {
-        let diff = (score - parseFloat(data.score)).toFixed(2);
+        let diff = (sc - parseFloat(data.score)).toFixed(2);
         if (!diff.startsWith("-")) diff = "+" + diff;
         console.log(word,
             ok1 ? "[OK]" : "[" + diff + "]", sc1, "exp =", data.score,
@@ -67,7 +67,7 @@ function test(word, data) {
     all++;
 }
 
-interface FinPrim { score: string, sims: string, words: string[]  }
+interface FinPrim { score: string, sims: string, words: string[] }
 const finprims: { [index: string]: FinPrim } =
     JSON.parse(Deno.readTextFileSync("finprims.json"));
 for (const [word, data] of Object.entries(finprims)) test(word, data);
