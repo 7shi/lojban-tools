@@ -1,4 +1,4 @@
-function score(g: string, w: string) {
+function similarity(g: string, w: string) {
     if (!w) return [0, 0];
     const memo = Array(g.length).fill([]).map(() => Array(w.length));
     function f(gp: number, wp: number) {
@@ -23,7 +23,7 @@ function score(g: string, w: string) {
 
 function gismu(weights: number[], jbo: string, words: string[]) {
     while (words.length < 6) words.push("");
-    const scores = words.map(w => score(jbo, w));
+    const scores = words.map(w => similarity(jbo, w));
     let sum = scores.map((sc, i) => sc[1] * weights[i]).reduce((x, y) => x + y);
     return { sum: sum, scores: scores.map(sc => sc[0]) };
 }
