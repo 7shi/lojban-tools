@@ -84,7 +84,7 @@ function scoreInt(words: string[], sims: number[], weights: number[]) {
 
 function gismuScoreInt(g: string, weights: number[]) {
     const data = finprims[g];
-    return scoreInt(data.words, data.words.map(w => similarity(g, w)), weights);
+    return scoreInt(data.words, data.sims, weights);
 }
 
 console.log("gismu", (gismuScoreInt("gismu", weights1) / 100).toFixed(2));
