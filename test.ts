@@ -33,7 +33,7 @@ interface FinPrim { score: string, sims: number[], words: string[] }
 const finprims: { [index: string]: FinPrim } =
     JSON.parse(Deno.readTextFileSync("finprims.json"));
 
-(function testSimilarity() {
+function testSimilarity() {
     let all = 0, ng = 0;
     for (const [g, data] of Object.entries(finprims)) {
         const sims = data.words.map(w => similarity(g, w));
@@ -41,7 +41,8 @@ const finprims: { [index: string]: FinPrim } =
         all++;
     }
     console.log("[testSimilarity] NG:", ng, "/", all);
-})();
+}
+testSimilarity();
 
 const weights = {
     //      [ zh  ,  en  ,  hi  ,  es  ,  ru  ,  ar  ]
