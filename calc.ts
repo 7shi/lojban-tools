@@ -3,7 +3,8 @@ import * as math from "https://esm.sh/mathjs@11.3.2/";
 interface FinPrim { score: string, sims: string, words: string[]  }
 const finprims: { [index: string]: FinPrim } =
     JSON.parse(Deno.readTextFileSync("finprims.json"));
-let lvalues: number[][] = [], rvalues: number[] = [], sols: DenseMatrix[] = [];
+
+    let lvalues: number[][] = [], rvalues: number[] = [], sols: DenseMatrix[] = [];
 for (const data of Object.values(finprims)) {
     lvalues.push(data.sims.split(" ").map((sc, i) => {
         const len = data.words[i].length;
