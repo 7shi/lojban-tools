@@ -38,7 +38,7 @@ function testSimilarity() {
     for (const [g, data] of Object.entries(finprims)) {
         const sims = data.words.map(w => similarity(g, w));
         if (sims.join(" ") != data.sims.join(" ")) {
-            console.log(g, "[NG]", sims, "exp =", data.sims);
+            console.log(g, "[NG]", sims, "expected:", data.sims);
             ng++;
         }
         all++;
@@ -97,7 +97,7 @@ function testScore(weights: number[]) {
     for (const [g, data] of Object.entries(finprims)) {
         const sc = (gismuScoreInt(g, weights) / 100).toFixed(2);
         if (sc != data.score) {
-            console.log(g, "[NG]", sc, "exp =", data.score, data.sims);
+            console.log(g, "[NG]", sc, "expected:", data.score, data.sims);
             ng++;
         }
         all++;
