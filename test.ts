@@ -29,7 +29,7 @@ function similarity(g: string, w: string) {
     return s < 3 ? similarity2b(g, w) : s;
 }
 
-interface FinPrim { score: string, sims: string, words: string[] }
+interface FinPrim { score: string, sims: number[], words: string[] }
 const finprims: { [index: string]: FinPrim } =
     JSON.parse(Deno.readTextFileSync("finprims.json"));
 
@@ -37,7 +37,7 @@ const finprims: { [index: string]: FinPrim } =
     let all = 0, ng = 0;
     for (const [g, data] of Object.entries(finprims)) {
         const sims = data.words.map(w => similarity(g, w));
-        if (sims.join(" ") != data.sims) ng++;
+        if (sims.join(" ") != data.sims.join(" ")) ng++;
         all++;
     }
     console.log("[testSimilarity] NG:", ng, "/", all);
@@ -59,7 +59,7 @@ function score(words: string[], sims: number[], weights: number[]) {
 
 function gismuScore(g: string, weights: number[]) {
     const data = finprims[g];
-    return score(data.words, data.words.map(w => similarity(g, w)), weights);
+    return score(data.words, data.sims, weights);
 }
 
 function testWeightsScore(g: string) {
