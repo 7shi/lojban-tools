@@ -8,7 +8,7 @@ These scripts are run by [Deno](https://deno.land/).
 2. calc.ts: calculate weights
 3. test.ts: confirm finprims's score
 
-Weights used by finprims (calculated by calc.ts):
+Weights used by finprims (calculated by calc.ts and modified manually):
 
 ```text
 Chinese     0.330
