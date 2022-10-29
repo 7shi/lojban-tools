@@ -74,9 +74,9 @@ function testWeightsScore(g: string) {
 }
 testWeightsScore("gismu");
 
-const weights1 = [0.330, 0.180, 0.160, 0.120, 0.121, 0.070]; // sum: 0.98
-console.log("gismu", (gismuScore("gismu", weights1) * 100).toFixed(2));
-console.log("gismu", (Math.floor(gismuScore("gismu", weights1) * 10000) / 100).toFixed(2));
+const weights2 = [0.330, 0.180, 0.160, 0.120, 0.120, 0.070]; // sum: 0.98
+console.log("gismu", (gismuScore("gismu", weights2) * 100).toFixed(2));
+console.log("gismu", (Math.floor(gismuScore("gismu", weights2) * 10000) / 100).toFixed(2));
 
 function scoreInt(words: string[], sims: number[], weights: number[]) {
     const ws = weights.map(w => Math.floor(w * 10000));
@@ -90,7 +90,7 @@ function gismuScoreInt(g: string, weights: number[]) {
     return scoreInt(data.words, data.sims, weights);
 }
 
-console.log("gismu", (gismuScoreInt("gismu", weights1) / 100).toFixed(2));
+console.log("gismu", (gismuScoreInt("gismu", weights2) / 100).toFixed(2));
 
 function testScore(weights: number[]) {
     let all = 0, ng = 0;
@@ -104,7 +104,4 @@ function testScore(weights: number[]) {
     }
     console.log("NG:", ng, "/", all);
 }
-//testScore(weights1);
-
-const weights2 = [0.330, 0.180, 0.160, 0.120, 0.120, 0.070]; // sum: 0.98
 testScore(weights2);
