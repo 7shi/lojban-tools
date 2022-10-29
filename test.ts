@@ -37,7 +37,10 @@ function testSimilarity() {
     let all = 0, ng = 0;
     for (const [g, data] of Object.entries(finprims)) {
         const sims = data.words.map(w => similarity(g, w));
-        if (sims.join(" ") != data.sims.join(" ")) ng++;
+        if (sims.join(" ") != data.sims.join(" ")) {
+            console.log(g, "[NG]", sims, "exp =", data.sims);
+            ng++;
+        }
         all++;
     }
     console.log("[testSimilarity] NG:", ng, "/", all);
