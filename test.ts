@@ -29,66 +29,78 @@ function similarity(g: string, w: string) {
     return s < 3 ? similarity2b(g, w) : s;
 }
 
+interface FinPrim { score: string, sims: string, words: string[] }
+const finprims: { [index: string]: FinPrim } =
+    JSON.parse(Deno.readTextFileSync("finprims.json"));
+
+(function testSimilarity() {
+    let all = 0, ng = 0;
+    for (const [g, data] of Object.entries(finprims)) {
+        const sims = data.words.map(w => similarity(g, w));
+        if (sims.join(" ") != data.sims) ng++;
+        all++;
+    }
+    console.log("[testSimilarity] NG:", ng, "/", all);
+})();
+
 const weights = {
     //      [ zh  ,  en  ,  hi  ,  es  ,  ru  ,  ar  ]
     "1985": [0.360, 0.210, 0.160, 0.110, 0.090, 0.070], // sum: 1
     "1994": [0.348, 0.163, 0.194, 0.123, 0.088, 0.084], // sum: 1
     "1995": [0.347, 0.160, 0.196, 0.123, 0.089, 0.085], // sum: 1
     "1999": [0.334, 0.187, 0.195, 0.116, 0.081, 0.088], // sum: 1.001
-    "????": [0.330, 0.180, 0.160, 0.120, 0.120, 0.070], // sum: 0.98
 };
 
-interface FinPrim { score: string, sims: string, words: string[] }
-const finprims: { [index: string]: FinPrim } =
-    JSON.parse(Deno.readTextFileSync("finprims.json"));
+function score(words: string[], sims: number[], weights: number[]) {
+    return words
+        .map((w, i) => w ? sims[i] / w.length * weights[i] : 0)
+        .reduce((x, y) => x + y);
+}
 
-// let all = 0, ng = 0;
-// for (const [g, data] of Object.entries(finprims)) {
-//     const sims = data.words.map(w => similarity(g, w));
-//     if (sims.join(" ") != data.sims) ng++;
-//     all++;
-// }
-// console.log("NG:", ng, "/", all);
+function gismuScore(g: string, weights: number[]) {
+    const data = finprims[g];
+    return score(data.words, data.words.map(w => similarity(g, w)), weights);
+}
 
-// const data = finprims["gismu"];
-// console.log(data);
-// for (const [key, ws] of Object.entries(weights)) {
-//     const ws2 = ws.map(w => Math.floor(w * 10000));
-//     let score = 0;
-//     for (let i = 0; i < 6; i++) {
-//         const word = data.words[i];
-//         score += Math.floor(similarity("gismu", word) * ws2[i] / word.length);
-//     }
-//     console.log(key, (score / 100).toFixed(2));
-// }
+function testWeightsScore(g: string) {
+    console.log(g, "expected:", finprims[g].score);
+    for (const [key, ws] of Object.entries(weights)) {
+        console.log(key, (gismuScore(g, ws) * 100).toFixed(2));
+    }
+}
+testWeightsScore("gismu");
 
-function score(g: string, words: string[], weights: number[]) {
-    let score = 0;
+const weights1 = [0.330, 0.180, 0.160, 0.120, 0.121, 0.070]; // sum: 0.98
+console.log("gismu", (gismuScore("gismu", weights1) * 100).toFixed(2));
+console.log("gismu", (Math.floor(gismuScore("gismu", weights1) * 10000) / 100).toFixed(2));
+
+function scoreInt(words: string[], sims: number[], weights: number[]) {
     const ws = weights.map(w => Math.floor(w * 10000));
-    const sims: number[] = [];
-    for (let i = 0; i < 6; i++) {
-        const w = words[i];
-        const s = similarity(g, w);
-        sims.push(s);
-        if (s) score += Math.floor(s * ws[i] / w.length);
-    }
-    return { score: score / 100, sims: sims };
+    return words
+        .map((w, i) => w ? Math.floor(sims[i] * ws[i] / w.length) : 0)
+        .reduce((x, y) => x + y);
 }
 
-const ws = weights["????"];
-// const ws = [0.330, 0.180, 0.160, 0.120, 0.120, 0.070]; // sum: 0.98
-let all = 0, ng = 0;
-for (const [g, data] of Object.entries(finprims)) {
-    const sc = score(g, data.words, ws);
-    const sc1 = sc.score.toFixed(2), sc2 = sc.sims.join(" ");
-    const ok1 = sc1 == data.score, ok2 = sc2 == data.sims;
-    if (!ok1 || !ok2) {
-        console.log(g,
-            ok1 ? "[OK]" : "[NG]", sc1, "exp =", data.score,
-            ok2 ? "[OK]" : "[NG]", sc2, "exp =", data.sims,
-            "|", data.words.join(" "));
-        ng++;
-    }
-    all++;
+function gismuScoreInt(g: string, weights: number[]) {
+    const data = finprims[g];
+    return scoreInt(data.words, data.words.map(w => similarity(g, w)), weights);
 }
-console.log("NG:", ng, "/", all);
+
+console.log("gismu", (gismuScoreInt("gismu", weights1) / 100).toFixed(2));
+
+function testScore(weights: number[]) {
+    let all = 0, ng = 0;
+    for (const [g, data] of Object.entries(finprims)) {
+        const sc = (gismuScoreInt(g, weights) / 100).toFixed(2);
+        if (sc != data.score) {
+            console.log(g, "[NG]", sc, "exp =", data.score, data.sims);
+            ng++;
+        }
+        all++;
+    }
+    console.log("NG:", ng, "/", all);
+}
+//testScore(weights1);
+
+const weights2 = [0.330, 0.180, 0.160, 0.120, 0.120, 0.070]; // sum: 0.98
+testScore(weights2);
