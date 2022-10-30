@@ -6,6 +6,7 @@ const finprims: { [index: string]: FinPrim } =
 
     let lvalues: number[][] = [], rvalues: number[] = [], sols: DenseMatrix[] = [];
 for (const data of Object.values(finprims)) {
+    if (!data.sims) continue;
     lvalues.push(data.sims.map((s, i) => s ? s / data.words[i].length : 0));
     rvalues.push(parseFloat(data.score) / 100);
     if (lvalues.length == 6) {
