@@ -188,7 +188,7 @@ function score(words: string[], sims: number[]) {
 
 function checkRank(candidates, g: string) {
     const data = T.finprims[g];
-    if (!data || !data.words) return;
+    if (!data || !data.words) throw "illegal: " + g;
     const scores = {};
     const keys = Object.keys(candidates);
     let max = 0;
@@ -206,36 +206,47 @@ function checkRank(candidates, g: string) {
     return { score: sc, rank: rank, total: keys.length, max: max, tops: tops };
 }
 
-function exists(path) {
-    try { return Deno.statSync(path).isFile; } catch { return false; }
-}
-
-function makeRanks(path: string, candidates, gismu) {
-    let list = {};
-    if (!exists(path)) {
-        const keys = Object.keys(gismu);
-        for (let i = 0; i < keys.length; i++) {
-            const g = keys[i];
-            const r = checkRank(candidates, g);
-            if (r) {
-                console.log(i + 1, "/", keys.length, g, r);
-                list[g] = r;
-            }
-        }
-        Deno.writeTextFileSync(path, JSON.stringify(list));
-    } else {
-        list = JSON.parse(Deno.readTextFileSync(path));
+function setRanks(ranks, candidates, list) {
+    for (let i = 0; i < list.length; i++) {
+        const g = list[i];
+        const r = checkRank(candidates, g);
+        console.log(i + 1, "/", list.length, g, r);
+        ranks[g] = r;
     }
-    return list;
 }
 
-function deleteIf(list, candidates, gismu, f) {
+function readRanks(path: string) {
+    try {
+        return JSON.parse(Deno.readTextFileSync(path));
+    } catch {
+        return null;
+    }
+}
+
+function deleteIf(ranks, candidates, gismu, f) {
     let del = 0;
-    for (const [g, r] of Object.entries(list)) {
+    for (const [g, r] of Object.entries(ranks)) {
         if (f(g, r)) {
+            delete ranks[g];
             deleteConflicts(candidates, g);
             delete gismu[g];
             del++;
+        }
+    }
+    if (del) {
+        const len = Object.keys(candidates).length;
+        for (const [g, r] of Object.entries(ranks)) {
+            r.total = len;
+            const len1 = r.tops.length;
+            if (r.rank <= len1 + 1) {
+                r.tops = r.tops.filter(c => c in candidates);
+                const len2 = r.tops.length;
+                if (!len2) {
+                    delete r.rank;
+                } else if (len1 != len2 && r.rank > 1) {
+                    r.rank = len2 + 1;
+                }
+            } else delete r.rank;
         }
     }
     return del;
@@ -253,26 +264,30 @@ function testRank() {
         }
     }
     console.log(Object.keys(candidates).length, Object.keys(gismu).length);
-    let list = {};
-    let i = 1, del = 1;
-    for (; del; i++) {
-        list = makeRanks("rank-" + i + ".json", candidates, gismu);
+    let ranks = {};
+    let del = 1;
+    for (let i = 1; del; i++) {
+        const path = `rank-${i}.json`;
+        const cache = readRanks(path);
+        if (cache) {
+            ranks = cache;
+        } else {
+            const list = i == 1 ? Object.keys(gismu)
+                : Object.keys(ranks).filter(g => !ranks[g].rank);
+            setRanks(ranks, candidates, list);
+            Deno.writeTextFileSync(path, JSON.stringify(ranks));
+        }
         const len = Object.keys(gismu).length;
-        del = deleteIf(list, candidates, gismu, (_, r) =>
+        del = deleteIf(ranks, candidates, gismu, (_, r) =>
             r.rank == 1 && r.tops.length == 1);
         console.log("[", i, "] determine:", del, "/", len);
         if (del == 0) {
-            del = deleteIf(list, candidates, gismu, (g, r) =>
-                r.tops.length == 1 && similar(g, r.tops[0]));
-            console.log("[", i, "] similar:", del, "/", len);
-        }
-        if (del == 0) {
-            del = deleteIf(list, candidates, gismu, (g, r) =>
+            del = deleteIf(ranks, candidates, gismu, (g, r) =>
                 r.tops.length == 1 && diff(g, r.tops[0]).length == 1);
             console.log("[", i, "] typo:", del, "/", len);
         }
         if (del == 0) {
-            del = deleteIf(list, candidates, gismu, (_, r) => r.rank == 1);
+            del = deleteIf(ranks, candidates, gismu, (_, r) => r.rank == 1);
             console.log("[", i, "] select:", del, "/", len);
         }
     }
