@@ -24,13 +24,13 @@ function similarity2b(g: string, w: string): number {
     return 0;
 }
 
-function similarity(g: string, w: string) {
+export function similarity(g: string, w: string) {
     let s = similarity2a(g, w);
     return s < 3 ? similarity2b(g, w) : s;
 }
 
-interface FinPrim { score: string, sims: number[], words: string[] }
-const finprims: { [index: string]: FinPrim } =
+export interface FinPrim { score: string, sims: number[], words: string[] }
+export const finprims: { [index: string]: FinPrim } =
     JSON.parse(Deno.readTextFileSync("finprims.json"));
 
 function testSimilarity() {
@@ -45,9 +45,9 @@ function testSimilarity() {
     }
     console.log("[testSimilarity] NG:", ng, "/", all);
 }
-testSimilarity();
+if (import.meta.main) testSimilarity();
 
-const weights = {
+export const weights = {
     //      [ zh  ,  en  ,  hi  ,  es  ,  ru  ,  ar  ]
     "1985": [0.360, 0.210, 0.160, 0.110, 0.090, 0.070], // sum: 1
     "1994": [0.348, 0.163, 0.194, 0.123, 0.088, 0.084], // sum: 1
@@ -72,25 +72,27 @@ function testWeightsScore(g: string) {
         console.log(key, (gismuScore(g, ws) * 100).toFixed(2));
     }
 }
-testWeightsScore("gismu");
+if (import.meta.main) testWeightsScore("gismu");
 
-const weights2 = [0.330, 0.180, 0.160, 0.120, 0.120, 0.070]; // sum: 0.98
-console.log("gismu", (gismuScore("gismu", weights2) * 100).toFixed(2));
-console.log("gismu", (Math.floor(gismuScore("gismu", weights2) * 10000) / 100).toFixed(2));
+export const weights2 = [0.330, 0.180, 0.160, 0.120, 0.120, 0.070]; // sum: 0.98
+if (import.meta.main) {
+    console.log("gismu", (gismuScore("gismu", weights2) * 100).toFixed(2));
+    console.log("gismu", (Math.floor(gismuScore("gismu", weights2) * 10000) / 100).toFixed(2));
+}
 
-function scoreInt(words: string[], sims: number[], weights: number[]) {
+export function scoreInt(words: string[], sims: number[], weights: number[]) {
     const ws = weights.map(w => Math.floor(w * 10000));
     return words
         .map((w, i) => w ? Math.floor(sims[i] * ws[i] / w.length) : 0)
         .reduce((x, y) => x + y);
 }
 
-function gismuScoreInt(g: string, weights: number[]) {
+export function gismuScoreInt(g: string, weights: number[]) {
     const data = finprims[g];
     return scoreInt(data.words, data.sims, weights);
 }
 
-console.log("gismu", (gismuScoreInt("gismu", weights2) / 100).toFixed(2));
+if (import.meta.main) console.log("gismu", (gismuScoreInt("gismu", weights2) / 100).toFixed(2));
 
 function testScore(weights: number[]) {
     let all = 0, ng = 0;
@@ -104,4 +106,4 @@ function testScore(weights: number[]) {
     }
     console.log("NG:", ng, "/", all);
 }
-testScore(weights2);
+if (import.meta.main) testScore(weights2);
