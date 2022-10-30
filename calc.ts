@@ -4,7 +4,7 @@ interface FinPrim { score: string, sims: number[], words: string[] }
 const finprims: { [index: string]: FinPrim } =
     JSON.parse(Deno.readTextFileSync("finprims.json"));
 
-    let lvalues: number[][] = [], rvalues: number[] = [], sols: DenseMatrix[] = [];
+let lvalues: number[][] = [], rvalues: number[] = [], sols: DenseMatrix[] = [];
 for (const data of Object.values(finprims)) {
     if (!data.sims) continue;
     lvalues.push(data.sims.map((s, i) => s ? s / data.words[i].length : 0));
