@@ -36,6 +36,7 @@ export const finprims: { [index: string]: FinPrim } =
 function testSimilarity() {
     let all = 0, ng = 0;
     for (const [g, data] of Object.entries(finprims)) {
+        if (!data.words) continue;
         const sims = data.words.map(w => similarity(g, w));
         if (sims.join(" ") != data.sims.join(" ")) {
             console.log(g, "[NG]", sims, "expected:", data.sims);
@@ -97,6 +98,7 @@ if (import.meta.main) console.log("gismu", (gismuScoreInt("gismu", weights2) / 1
 function testScore(weights: number[]) {
     let all = 0, ng = 0;
     for (const [g, data] of Object.entries(finprims)) {
+        if (!data.score) continue;
         const sc = (gismuScoreInt(g, weights) / 100).toFixed(2);
         if (sc != data.score) {
             console.log(g, "[NG]", sc, "expected:", data.score, data.sims);

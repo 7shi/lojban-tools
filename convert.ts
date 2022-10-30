@@ -9,28 +9,28 @@ let word = "", words: string[] = [], reserved = {};
 let count = 0;
 for (const line of finprims.split("\r\n")) {
     const d = line.substring(14);
-    const m1 = d.match(/^([a-z]+) {5}\d\d\.\d\d {5}/);
-    const m2 = d.match(/^[a-z]+( [a-z]*){3,5}$/);
-    const m3 = d.match(/([a-z?]+)  (\d\d\.\d\d) (\d( \d){5})/);
-    if (m1) {
-        if (word && reserved["score"]) data[word] = reserved;
-        word = m1[1];
+    const m1 = d.match(/^[a-z]+( [a-z]*){3,5}$/);
+    const m2 = d.match(/([a-z?]+)  (\d\d\.\d\d) (\d( \d){5})/);
+    if (line[52] == "o" && (line[51].match(/[0-9]/) || !line[53] || line[53] == ' ')) {
+        const m3 = d.match(/^([a-z]+)/);
+        if (word == "brodu") word = "bridi";
+        if (word) data[word] = reserved;
+        word = m3[1];
         words = [];
         reserved = {};
-    } else if (m2 && (!words.length || reserved["score"])) {
+    } else if (m1 && (!words.length || reserved["score"])) {
         words = d.split(" ");
         while (words.length < 6) words.push("");
         reserved = {};
-    } else if (m3 && words.length) {
-        const sims = m3[3].split(" ").map(s => parseInt(s));
-        const r = { score: m3[2], sims: sims, words: words };
-        if (m3[1] == word) {
+    } else if (m2 && words.length) {
+        const sims = m2[3].split(" ").map(s => parseInt(s));
+        const r = { score: m2[2], sims: sims, words: words };
+        if (m2[1] == word) {
             data[word] = r;
             word = "";
         } else reserved = r;
     }
 }
 if (word && reserved["score"]) data[word] = reserved;
-
 Deno.writeTextFileSync(Deno.args[1], JSON.stringify(data));
-//Deno.writeTextFileSync(Deno.args[1] + ".txt", Object.keys(data).join("\n") + "\n");
+//Deno.writeTextFileSync(Deno.args[1] + "-1.txt", Object.keys(data).join("\n") + "\n");
