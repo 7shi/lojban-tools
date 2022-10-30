@@ -13,7 +13,7 @@ for (const line of finprims.split("\r\n")) {
     const m2 = d.match(/([a-z?]+)  (\d\d\.\d\d) (\d( \d){5})/);
     if (line[52] == "o" && (line[51].match(/[0-9]/) || !line[53] || line[53] == ' ')) {
         const m3 = d.match(/^([a-z]+)/);
-        if (word == "brodu") word = "bridi";
+        if (word == "brodu") { data["bridi"] = reserved; reserved = {}; }
         if (word) data[word] = reserved;
         word = m3[1];
         words = [];
