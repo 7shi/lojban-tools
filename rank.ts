@@ -41,19 +41,23 @@ const similarC = {
     "z": "js",
 };
 
-function isSimilar(g1: string, g2: string) {
+function diff(x: string, y: string) {
+    if (x.length != y.length) throw "length not match";
+    const ret = [];
+    for (let i = 0; i < x.length; i++) {
+        if (x[i] != y[i]) ret.push(i);
+    }
+    return ret;
+}
+
+function similar(g1: string, g2: string) {
     if (g1.length != 5 || g2.length != 5) throw "length != 5";
     if (g1.substring(0, 4) == g2.substring(0, 4)) return true;
-    let s = -1;
-    for (let i = 0; i < 5; i++) {
-        if (g1[i] != g2[i]) {
-            if (s >= 0) return false;
-            s = i;
-        }
-    }
-    if (s < 0) return true;
-    let c = similarC[g1[s]];
-    return c && c.includes(g2[s]);
+    let d = diff(g1, g2);
+    if (d.length != 1) return false;
+    const p = d[0];
+    const c = similarC[g1[p]];
+    return c && c.includes(g2[p]);
 }
 
 function* generateConflicts(g: string) {
@@ -186,8 +190,9 @@ function checkRank(candidates, g: string) {
     const data = T.finprims[g];
     if (!data || !data.words) return;
     const scores = {};
+    const keys = Object.keys(candidates);
     let max = 0;
-    for (const c of Object.keys(candidates)) {
+    for (const c of keys) {
         let sims = data.words.map(w => T.similarity(c, w));
         const s = scores[c] = score(data.words, sims);
         if (max < s) max = s;
@@ -198,16 +203,79 @@ function checkRank(candidates, g: string) {
     for (const [key, value] of Object.entries(scores)) {
         if (value == max) tops.push(key);
     }
-    console.log(g,
-        "score:", sc, "rank:", rank, "/", Object.keys(candidates).length,
-        "max:", max, tops.length, tops.join(" "));
+    return { score: sc, rank: rank, total: keys.length, max: max, tops: tops };
+}
+
+function exists(path) {
+    try { return Deno.statSync(path).isFile; } catch { return false; }
+}
+
+function makeRanks(path: string, candidates, gismu) {
+    let list = {};
+    if (!exists(path)) {
+        const keys = Object.keys(gismu);
+        for (let i = 0; i < keys.length; i++) {
+            const g = keys[i];
+            const r = checkRank(candidates, g);
+            if (r) {
+                console.log(i + 1, "/", keys.length, g, r);
+                list[g] = r;
+            }
+        }
+        Deno.writeTextFileSync(path, JSON.stringify(list));
+    } else {
+        list = JSON.parse(Deno.readTextFileSync(path));
+    }
+    return list;
+}
+
+function deleteIf(list, candidates, gismu, f) {
+    let del = 0;
+    for (const [g, r] of Object.entries(list)) {
+        if (f(g, r)) {
+            deleteConflicts(candidates, g);
+            delete gismu[g];
+            del++;
+        }
+    }
+    return del;
 }
 
 function testRank() {
     const candidates = {};
     for (const c of candidateGismu) candidates[c] = 1;
-    for (const g of Object.keys(T.finprims)) {
-        checkRank(candidates, g);
+    const gismu = { ...T.finprims };
+    console.log(Object.keys(candidates).length, Object.keys(gismu).length);
+    for (const [g, data] of Object.entries(gismu)) {
+        if (!data.words) {
+            deleteConflicts(candidates, g);
+            delete gismu[g];
+        }
     }
+    console.log(Object.keys(candidates).length, Object.keys(gismu).length);
+    let list = {};
+    let i = 1, del = 1;
+    for (; del; i++) {
+        list = makeRanks("rank-" + i + ".json", candidates, gismu);
+        const len = Object.keys(gismu).length;
+        del = deleteIf(list, candidates, gismu, (_, r) =>
+            r.rank == 1 && r.tops.length == 1);
+        console.log("[", i, "] determine:", del, "/", len);
+        if (del == 0) {
+            del = deleteIf(list, candidates, gismu, (g, r) =>
+                r.tops.length == 1 && similar(g, r.tops[0]));
+            console.log("[", i, "] similar:", del, "/", len);
+        }
+        if (del == 0) {
+            del = deleteIf(list, candidates, gismu, (g, r) =>
+                r.tops.length == 1 && diff(g, r.tops[0]).length == 1);
+            console.log("[", i, "] typo:", del, "/", len);
+        }
+        if (del == 0) {
+            del = deleteIf(list, candidates, gismu, (_, r) => r.rank == 1);
+            console.log("[", i, "] select:", del, "/", len);
+        }
+    }
+    console.log(Object.keys(candidates).length, Object.keys(gismu).length);
 }
 testRank();
