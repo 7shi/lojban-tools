@@ -1,3 +1,5 @@
+import { writeJSON } from "./utils.ts";
+
 if (Deno.args.length != 2) {
     console.log("[require] https://www.lojban.org/publications/etymology/finprims")
     throw "usage: deno run --allow-read --allow-write convert.ts finprims output";
@@ -32,5 +34,5 @@ for (const line of finprims.split("\r\n")) {
     }
 }
 if (word && reserved["score"]) data[word] = reserved;
-Deno.writeTextFileSync(Deno.args[1], JSON.stringify(data));
+writeJSON(Deno.args[1], data);
 //Deno.writeTextFileSync(Deno.args[1] + "-1.txt", Object.keys(data).join("\n") + "\n");
