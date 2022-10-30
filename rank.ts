@@ -1,4 +1,5 @@
 import * as T from "./test.ts";
+import { readJSON, writeJSON } from "./utils.ts";
 
 // https://lojban.github.io/cll/4/1/
 const V = "aeiou";
@@ -215,14 +216,6 @@ function setRanks(ranks, candidates, list) {
     }
 }
 
-function readRanks(path: string) {
-    try {
-        return JSON.parse(Deno.readTextFileSync(path));
-    } catch {
-        return null;
-    }
-}
-
 function deleteIf(ranks, candidates, gismu, f) {
     let del = 0;
     for (const [g, r] of Object.entries(ranks)) {
@@ -267,15 +260,15 @@ function testRank() {
     let ranks = {};
     let del = 1;
     for (let i = 1; del; i++) {
-        const path = `rank-${i}.json`;
-        const cache = readRanks(path);
+        const path = `ranks-${i}.json`;
+        const cache = readJSON(path);
         if (cache) {
             ranks = cache;
         } else {
             const list = i == 1 ? Object.keys(gismu)
                 : Object.keys(ranks).filter(g => !ranks[g].rank);
             setRanks(ranks, candidates, list);
-            Deno.writeTextFileSync(path, JSON.stringify(ranks));
+            writeJSON(path, ranks);
         }
         const len = Object.keys(gismu).length;
         del = deleteIf(ranks, candidates, gismu, (_, r) =>
