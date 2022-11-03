@@ -7,8 +7,7 @@ if (Deno.args.length != 2) {
 
 const finprims = Deno.readTextFileSync(Deno.args[0]);
 const data = {};
-let word = "", words: string[] = [], reserved = {};
-let count = 0;
+let word = "", words: string[] = [], reserved = {}, comment = "";
 for (const line of finprims.split("\r\n")) {
     const d = line.substring(14);
     const m1 = d.match(/^[a-z]+( [a-z]*){3,5}$/);
@@ -20,13 +19,18 @@ for (const line of finprims.split("\r\n")) {
         word = m3[1];
         words = [];
         reserved = {};
+        comment = line.substring(53).trim();
+    } else if (d.includes("typo")) {
+        if (comment) comment += "; ";
+        comment += d;
+        if (word == "sorgu") words = " sorgam  sorg sorg ".split(" ");
     } else if (m1 && (!words.length || reserved["score"])) {
         words = d.split(" ");
         while (words.length < 6) words.push("");
         reserved = {};
     } else if (m2 && words.length) {
         const sims = m2[3].split(" ").map(s => parseInt(s));
-        const r = { score: m2[2], sims: sims, words: words };
+        const r = { score: m2[2], sims: sims, words: words, comment: comment };
         if (m2[1] == word) {
             data[word] = r;
             word = "";
