@@ -29,7 +29,7 @@ export function similarity(g: string, w: string) {
     return s < 3 ? similarity2b(g, w) : s;
 }
 
-export interface FinPrim { score: string, sims: number[], words: string[] }
+export interface FinPrim { score: string, sims: number[], words: string[], comment: string }
 export const finprims: { [index: string]: FinPrim } =
     JSON.parse(Deno.readTextFileSync("finprims.json"));
 
