@@ -39,4 +39,3 @@ for (const line of finprims.split("\r\n")) {
 }
 if (word && reserved["score"]) data[word] = reserved;
 writeJSON(Deno.args[1], data);
-//Deno.writeTextFileSync(Deno.args[1] + "-1.txt", Object.keys(data).join("\n") + "\n");
